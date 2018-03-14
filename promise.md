@@ -118,7 +118,7 @@ function resolvePromise(promise2, x, resolve, reject) {
 Promise.prototype.then = function(onFulfilled, onRjected){
  let  self = this;
  let promise2;  //返回的必须也是一个promise对象
- //  then的参数必须是function，所以做如下容错处理
+ //  then的参数必须是function，或者直接做值得穿透，故做如下处理
  onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : function (value) {
     return value;
  };
