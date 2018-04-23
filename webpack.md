@@ -383,8 +383,8 @@ module.exports = merge(base, prod);
 #### 开发一个自己的webpack插件
 // TODO
 #### 参考链接
-https://juejin.im/post/5ac9dc9af265da23884d5543
-https://www.webpackjs.com/configuration/externals/#externals
+- https://juejin.im/post/5ac9dc9af265da23884d5543
+- https://www.webpackjs.com/configuration/externals/#externals
 
 
 
