@@ -189,12 +189,21 @@ setTimeout(function () {
 从图中看出node循环的顺序:
 外部输入数据-->轮询阶段(poll)-->检查阶段(check)-->关闭事件回调阶段(close callback)-->定时器检测阶段(timer)-->I/O事件回调阶段(I/O callbacks)-->闲置阶段(idle, prepare)-->轮询阶段...
 大致功能如下:
-- timers: 这个阶段执行定时器队列中的回调如 setTimeout() 和 setInterval()。
+- timers: 这个阶段执行定时器队列中的回调如 setTimeout() 和 setInterval()。一个 timer 指定的时间并不是准确时间，而是在达到这个时间后尽快执行回调，可能会因为系统正在执行别的事务而延迟。下限的时间有一个范围：[1, 2147483647] ，如果设定的时间不在这个范围，将被设置为1。
 - I/O callbacks: 这个阶段执行几乎所有的回调。但是不包括close事件,定时器和setImmediate()的回调。例如一个TCP连接生错误时,系统需要执行回调来获得这个错误的报告。
 - idle, prepare: 这个阶段仅在内部使用,可以不必理会。
 - poll:等待新的I/O事件,node在一些特殊情况下会阻塞在这里。
+##### 在这一阶段，系统会做两件事
+1.执行到点的定时器
+2.执行poll队列中的事件
+当poll中没有定时器的情况下,会发生以下两件事
+1.如果poll队列不为空,会遍历回调队列并同步执行,直到队列为空或者系统限制
+2.如果队列不为空,会发生两件事①如果setImmediate需要执行，poll阶段会停止并且进入到check阶段执行setImmediate②如果没有setImmediate需要执行，会等待回调被加入到队列中并立即执行回调
+3.如果有别的定时器需要被执行,会回到timer阶段执行回调
 - check: setImmediate()的回调会在这个阶段执行。当poll阶段进入空闲状态,并且setImmediate queue中有callback时,事件循环进入这个阶段。
 - close callbacks: 例如socket.on('close', ...)这种close事件的回调。
+
+##### node中的process.nextTick会优于其他microtask执行
 
 参考链接:
 <https://zhuanlan.zhihu.com/p/33058983>
