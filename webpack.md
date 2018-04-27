@@ -216,7 +216,42 @@ resolve: {
     },
 
 ```
-提取公共的js文件
+
+ ##### 压缩css
+webpack可以消除未使用的CSS,比如bootstrap中那些未使用的样式
+```
+npm i -D purifycss-webpack purify-css
+npm i bootstrap -S
+```
+```
+{
+                test:/\.css$/,
+                use: cssExtract.extract({
+                    use: [{
+                         loader: 'css-loader',
+ +                       options:{minimize:true}
+                    },'postcss-loader']
+                }),
+            }
+```
+```
+new PurifyCSSPlugin({
++             //purifycss根据这个路径配置遍历你的HTML文件,查找你使用的CSS
++            paths:glob.sync(path.join(__dirname,'src/*.html'))
++ }),
+```
+##### 提取第三方库
+```
+module.exports = {
+    entry: {
+        main: './src/index.js',
+        vendor: ['react', 'react-dom'],
+    },
+}
+```
+单单像上面这样配置，打包后会得到 main.js 和 vendor.js，但会发现在 main.js 中依然包含了 react 和 react-dom 的代码，这是因为指定了入口后，webpack 就会从入口文件开始讲整个依赖打包进来，index.js 中引用了 react 和 react-dom 自然会被打包进去。要想达到之前所说的那个效果，还需要借助一个插件 —— CommonsChunkPlugin
+
+##### 提取公共的js文件
 webpack4中废弃了webpack.optimize.CommonsChunkPlugin插件,用新的配置项替代,把多次import的文件打包成一个单独的common.js
 ```
 module.exports = {
@@ -240,39 +275,7 @@ module.exports = {
     },
 }
 ```
-压缩css
-webpack可以消除未使用的CSS,比如bootstrap中那些未使用的样式
-```
-npm i -D purifycss-webpack purify-css
-npm i bootstrap -S
-```
-```
-{
-                test:/\.css$/,
-                use: cssExtract.extract({
-                    use: [{
-                         loader: 'css-loader',
- +                       options:{minimize:true}
-                    },'postcss-loader']
-                }),
-            }
-```
-```
-new PurifyCSSPlugin({
-+             //purifycss根据这个路径配置遍历你的HTML文件,查找你使用的CSS
-+            paths:glob.sync(path.join(__dirname,'src/*.html'))
-+ }),
-```
-提取第三方库
-```
-module.exports = {
-    entry: {
-        main: './src/index.js',
-        vendor: ['react', 'react-dom'],
-    },
-}
-```
-DLL动态链接
+##### DLL动态链接
 第三方库不是经常更新,打包的时候希望分开打包,提升打包速度。打包dll需要新建一个webpack配置文件,在打包dll的时候,webpack做一个索引,写在manifest文件中。然后打包项目文件时只需要读取manifest文件。
 ```
 webpack.vendor.js
